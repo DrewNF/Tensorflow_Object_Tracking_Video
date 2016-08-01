@@ -5,11 +5,12 @@ import json
 import subprocess
 from scipy.misc import imread
 import numpy as np
-
+import sys
 # Import DET Alg package
 
 # import sys
 # sys.path.insert(0, 'TENSORBOX')
+sys.path.insert(0, 'TENSORBOX')
 
 # Original
 from utils import googlenet_load, train_utils
@@ -17,7 +18,7 @@ from utils.annolist import AnnotationLib as al
 from utils.rect import Rect
 #Modified
 
-from rect_multiclass import Rect_Multiclass
+from utils.rect_multiclass import Rect_Multiclass
 
 
 #### My import
@@ -180,23 +181,23 @@ def print_logits(logits):
     print str(index+1),str(higher)
     return index+1 , higher
 
-def get_singleclass_rectangles(H, confidences, boxes, arch, min_conf,rnn_len=1):
+def get_singleclass_rectangles(H, confidences, boxes, min_conf,rnn_len=1):
     boxes_r = np.reshape(boxes, (-1,
-                                 arch["grid_height"],
-                                 arch["grid_width"],
+                                 H["grid_height"],
+                                 H["grid_width"],
                                  rnn_len,
                                  4))
     confidences_r = np.reshape(confidences, (-1,
-                                             arch["grid_height"],
-                                             arch["grid_width"],
+                                             H["grid_height"],
+                                             H["grid_width"],
                                              rnn_len,
                                              2))
-    cell_pix_size = H['arch']['region_size']
-    all_rects = [[[] for _ in range(arch["grid_width"])] for _ in range(arch["grid_height"])]
+    cell_pix_size = H['region_size']
+    all_rects = [[[] for _ in range(H["grid_width"])] for _ in range(H["grid_height"])]
 
-    for n in range(0, H['arch']['rnn_len']):
-        for y in range(arch["grid_height"]):
-            for x in range(arch["grid_width"]):
+    for n in range(0, H['rnn_len']):
+        for y in range(H["grid_height"]):
+            for x in range(H["grid_width"]):
                 bbox = boxes_r[0, y, x, n, :]
                 conf = confidences_r[0, y, x, n, 1]
                 abs_cx = int(bbox[0]) + cell_pix_size/2 + cell_pix_size * x
@@ -218,24 +219,24 @@ def get_singleclass_rectangles(H, confidences, boxes, arch, min_conf,rnn_len=1):
     
     return rects
 
-def get_multiclass_rectangles(H, confidences, boxes, arch, rnn_len):
+def get_multiclass_rectangles(H, confidences, boxes, rnn_len):
     boxes_r = np.reshape(boxes, (-1,
-                                 arch["grid_height"],
-                                 arch["grid_width"],
+                                 H["grid_height"],
+                                 H["grid_width"],
                                  rnn_len,
                                  4))
     confidences_r = np.reshape(confidences, (-1,
-                                             arch["grid_height"],
-                                             arch["grid_width"],
+                                             H["grid_height"],
+                                             H["grid_width"],
                                              rnn_len,
-                                             H['arch']['num_classes']))
+                                             H['num_classes']))
     # print "boxes_r shape" + str(boxes_r.shape)
     # print "confidences" + str(confidences.shape)
-    cell_pix_size = H['arch']['region_size']
-    all_rects = [[[] for _ in range(arch["grid_width"])] for _ in range(arch["grid_height"])]
+    cell_pix_size = H['region_size']
+    all_rects = [[[] for _ in range(H["grid_width"])] for _ in range(H["grid_height"])]
     for n in range(rnn_len):
-        for y in range(arch["grid_height"]):
-            for x in range(arch["grid_width"]):
+        for y in range(H["grid_height"]):
+            for x in range(H["grid_width"]):
                 bbox = boxes_r[0, y, x, n, :]
                 abs_cx = int(bbox[0]) + cell_pix_size/2 + cell_pix_size * x
                 abs_cy = int(bbox[1]) + cell_pix_size/2 + cell_pix_size * y
@@ -313,13 +314,13 @@ def still_image_TENSORBOX_singleclass(frames_list,path_video_folder,hypes_file,w
 
     tf.reset_default_graph()
     googlenet = googlenet_load.init(H)
-    x_in = tf.placeholder(tf.float32, name='x_in', shape=[H['arch']['image_height'], H['arch']['image_width'], 3])
+    x_in = tf.placeholder(tf.float32, name='x_in', shape=[H['image_height'], H['image_width'], 3])
 
-    if H['arch']['use_rezoom']:
+    if H['use_rezoom']:
         pred_boxes, pred_logits, pred_confidences, pred_confs_deltas, pred_boxes_deltas = build_forward(H, tf.expand_dims(x_in, 0), googlenet, 'test', reuse=None)
-        grid_area = H['arch']['grid_height'] * H['arch']['grid_width']
-        pred_confidences = tf.reshape(tf.nn.softmax(tf.reshape(pred_confs_deltas, [grid_area * H['arch']['rnn_len'], 2])), [grid_area, H['arch']['rnn_len'], 2])
-    if H['arch']['reregress']:
+        grid_area = H['grid_height'] * H['grid_width']
+        pred_confidences = tf.reshape(tf.nn.softmax(tf.reshape(pred_confs_deltas, [grid_area * H['rnn_len'], 2])), [grid_area, H['rnn_len'], 2])
+    if H['reregress']:
         pred_boxes = pred_boxes + pred_boxes_deltas
     else:
         pred_boxes, pred_logits, pred_confidences = build_forward(H, tf.expand_dims(x_in, 0), googlenet, 'test', reuse=None)
@@ -350,7 +351,7 @@ def still_image_TENSORBOX_singleclass(frames_list,path_video_folder,hypes_file,w
 
                 pred_anno = al.Annotation()        
             
-                rects = get_singleclass_rectangles(H, np_pred_confidences, np_pred_boxes,H["arch"],min_conf, rnn_len=H['arch']['rnn_len'])
+                rects = get_singleclass_rectangles(H, np_pred_confidences, np_pred_boxes,min_conf, rnn_len=H['rnn_len'])
                 pred_anno.rects = rects
                 pred_anno.imageName = frames_list[i]
                 pred_anno.frameNr = frameNr
@@ -372,7 +373,7 @@ def still_image_TENSORBOX_singleclass(frames_list,path_video_folder,hypes_file,w
 
 def still_image_TENSORBOX_multiclass(frames_list,path_video_folder,hypes_file,weights_file,pred_idl):
     
-    from train_multiclass import build_forward
+    from train import build_forward
 
     print("Starting DET Phase")
     
@@ -397,14 +398,14 @@ def still_image_TENSORBOX_multiclass(frames_list,path_video_folder,hypes_file,we
 
     tf.reset_default_graph()
     googlenet = googlenet_load.init(H)
-    x_in = tf.placeholder(tf.float32, name='x_in', shape=[H['arch']['image_height'], H['arch']['image_width'], 3])
+    x_in = tf.placeholder(tf.float32, name='x_in', shape=[H['image_height'], H['image_width'], 3])
 
-    if H['arch']['use_rezoom']:
+    if H['use_rezoom']:
         pred_boxes, pred_logits, pred_confidences, pred_confs_deltas, pred_boxes_deltas = build_forward(H, tf.expand_dims(x_in, 0), googlenet, 'test', reuse=None)
-        grid_area = H['arch']['grid_height'] * H['arch']['grid_width']
-        pred_confidences = tf.reshape(tf.nn.softmax(tf.reshape(pred_confs_deltas, [grid_area * H['arch']['rnn_len'], H['arch']['num_classes']])), [grid_area, H['arch']['rnn_len'], H['arch']['num_classes']])
-        pred_logits = tf.reshape(tf.nn.softmax(tf.reshape(pred_logits, [grid_area * H['arch']['rnn_len'], H['arch']['num_classes']])), [grid_area, H['arch']['rnn_len'], H['arch']['num_classes']])
-    if H['arch']['reregress']:
+        grid_area = H['grid_height'] * H['grid_width']
+        pred_confidences = tf.reshape(tf.nn.softmax(tf.reshape(pred_confs_deltas, [grid_area * H['rnn_len'], H['num_classes']])), [grid_area, H['rnn_len'], H['num_classes']])
+        pred_logits = tf.reshape(tf.nn.softmax(tf.reshape(pred_logits, [grid_area * H['rnn_len'], H['num_classes']])), [grid_area, H['rnn_len'], H['num_classes']])
+    if H['reregress']:
         pred_boxes = pred_boxes + pred_boxes_deltas
     else:
         pred_boxes, pred_logits, pred_confidences = build_forward(H, tf.expand_dims(x_in, 0), googlenet, 'test', reuse=None)
@@ -445,7 +446,7 @@ def still_image_TENSORBOX_multiclass(frames_list,path_video_folder,hypes_file,we
                 #     for j in range(0, np_pred_confidences.shape[2]):
                 #         print np_pred_confidences[i][0][j]
 
-                rects = get_multiclass_rectangles(H, np_pred_confidences, np_pred_boxes,H["arch"], rnn_len=H['arch']['rnn_len'])
+                rects = get_multiclass_rectangles(H, np_pred_confidences, np_pred_boxes, rnn_len=H['rnn_len'])
                 pred_anno.rects = rects
                 pred_anno.imageName = frames_list[i]
                 pred_anno.frameNr = frameNr
