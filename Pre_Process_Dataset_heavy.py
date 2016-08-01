@@ -68,26 +68,30 @@ def pre_process_dataset(bb_XML_file_list, path_val_folder, path_dataset):
             bb_folder_path=path_dataset+'/annotations/'+class_code+'/'
             data_folder_path=path_dataset+'/data/'+class_code+'/'
             for file_name in progress(bb_XML_file_list): 
+                removed=0            
+                delete=False
                 with open(file_name, 'rt') as f:
                     #print "File Opened: %s"%file_name
-                    tree = ElementTree.parse(f)
-                    root = tree.getroot()
-                    parent_map = dict((c, p) for p in tree.getiterator() for c in p)
+                    tree_new = ElementTree.parse(f)
+                    root_new = tree_new.getroot()
+                    parent_map_new = dict((c, p) for p in tree_new.getiterator() for c in p)
                     count_rect=0
                     # list so that we don't mess up the order of iteration when removing items.
-                    for obj in list(tree.findall('object')):
+                    for obj in list(tree_new.findall('object')):
                         obj_class_code = obj.find('name').text
                         if obj_class_code == str(class_code):
                             #print "Founded Object: %s"%Classes.code_to_class_string(obj_class_code)
                             #count_rect+1 there's an object of that class in the xml file
                             count_rect=count_rect+1
+                            delete=True
                         else:
                             #eliminate node
                             #print "Eliminated Node: %s"%Classes.code_to_class_string(obj_class_code)
-                            parent_map[obj].remove(obj)
+                            parent_map_new[obj].remove(obj)
+                            removed=removed+1
                     if count_rect>0:
                         ### Means the file belongs to the class so we change filename and directory name and we copy the image to the dataset
-                        for node in tree.iter():
+                        for node in tree_new.iter():
                             tag=str(node.tag)
                             if tag in ["folder"]:
                                 path_orig_file=path_val_folder+'/'+str(node.text)
@@ -100,13 +104,32 @@ def pre_process_dataset(bb_XML_file_list, path_val_folder, path_dataset):
                                 node.text= new_filename
                                 # print "Changed Name from: %s to : %s"%(path_orig_file, path_new_file)
                         xml_filename=bb_folder_path+class_code+'_'+str(000000+count_xml)+'.xml'
-                        tree.write(xml_filename)
+                        tree_new.write(xml_filename)
                         shutil.copy2(path_orig_file, path_new_file)
-                        print "Saved New .xml file: %s"%xml_filename
-                        print "Saved New .jpeg image: %s"%path_new_file
+                        # print "Saved New .xml file: %s"%xml_filename
+                        # print "Saved New .jpeg image: %s"%path_new_file
+                        if (removed == 0 ) & delete:
+                            os.remove(path_orig_file)
+                            # print "Removed image: %s"%(path_orig_file)
                         count_xml=count_xml+1
                         tot_rect_class=tot_rect_class+count_rect
-                        ##TODO: Copy Image 
+                        ##TODO: Copy Image
+                # print "Count_Rect %d"%count_rect
+                # print "Removed %d"%removed
+                if (removed == 0 ) & delete:
+                    os.remove(file_name)
+                    # print "Removed XML: %s"%(file_name)
+                    bb_XML_file_list.remove(file_name)
+                if (removed >0)&(count_rect>0):
+                    with open(file_name, 'rt') as f:
+                        tree_new = ElementTree.parse(f)
+                        root_new = tree_new.getroot()
+                        parent_map_new = dict((c, p) for p in tree_new.getiterator() for c in p)
+                        for obj in list(tree_new.findall('object')):
+                            obj_class_code = obj.find('name').text
+                            if obj_class_code == str(class_code):
+                                parent_map_new[obj].remove(obj)
+                        tree_new.write(file_name)
             end_string="Ended with Success Process for class:%s"%class_code 
             parsed_bb_string="Parsed: %d BB Files"%count_xml
             added_rect_String="Added: %d Object Rectangles"%tot_rect_class
@@ -131,7 +154,8 @@ def main():
     create_folder_structure(args.dataset_path)
     bb_XML_file_list= get_ordered_name_XML(args.bb_folder)
     pre_process_dataset(bb_XML_file_list, args.val_folder, args.dataset_path)
-    
+    # shutil.rmtree(args.val_folder, ignore_errors=True)
+    # shutil.rmtree(args.bb_folder, ignore_errors=True)
 
     end = time.time()
 
