@@ -26,10 +26,10 @@ def main():
     # parser.add_argument('--result_folder', default='summary_result/', type=str)
     # parser.add_argument('--summary_file', default='results.txt', type=str)
     parser.add_argument('--output_name', default='output.mp4', type=str)
-    parser.add_argument('--hypes', default='./TENSORBOX/hypes/overfeat_rezoom_multiclass.json', type=str)
+    parser.add_argument('--hypes', default='./TENSORBOX/hypes/overfeat_rezoom.json', type=str)
     parser.add_argument('--weights', default='./TENSORBOX/data/save.ckpt-1250000', type=str)
-    parser.add_argument('--perc', default=2, type=int)
-    parser.add_argument('--path_video', required=True, type=str)
+    parser.add_argument('--perc', default=5, type=int)
+    parser.add_argument('--path_video', default='ILSVRC2015_val_00013002.mp4', type=str)# required=True, type=str)
 
     args = parser.parse_args()
 
