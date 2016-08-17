@@ -12,20 +12,21 @@ import sys
 # sys.path.insert(0, 'TENSORBOX')
 sys.path.insert(0, 'TENSORBOX')
 
+
 # Original
-from utils import googlenet_load, train_utils
+from utils import googlenet_load, train_utils, rect_multiclass
 from utils.annolist import AnnotationLib as al
 from utils.rect import Rect
 #Modified
 
-from utils.rect_multiclass import Rect_Multiclass
-
 
 #### My import
 
-import Classes
-import Utils_Image
-import Utils_Video
+import vid_classes
+import frame
+import multiclass_rectangle
+import utils_image
+import utils_video
 import progressbar
 import os
 
@@ -248,11 +249,14 @@ def get_multiclass_rectangles(H, confidences, boxes, rnn_len):
                 # print np.max(confidences_r[0, y, x, n, 1:])
                 # print "conf" + str(conf)
                 # print "conf" + str(confidences_r[0, y, x, n, 1:])
-                all_rects[y][x].append(Rect_Multiclass(abs_cx,abs_cy,w,h,conf, index))
+                new_rect=multiclass_rectangle.Rectangle_Multiclass()
+                new_rect.set_unlabeled_rect(abs_cx,abs_cy,w,h,conf)
+                all_rects[y][x].append(new_rect)
     # print "confidences_r" + str(confidences_r.shape)
 
     all_rects_r = [r for row in all_rects for cell in row for r in cell]
     min_conf = get_higher_confidence(all_rects_r)
+    acc_rects=[rect for rect in all_rects_r if rect.true_confidence>min_conf]
     rects = []
     for rect in all_rects_r:
     	if rect.true_confidence>min_conf:
@@ -262,9 +266,10 @@ def get_multiclass_rectangles(H, confidences, boxes, rnn_len):
 	        r.y1 = rect.cy - rect.height/2.
 	        r.y2 = rect.cy + rect.height/2.
 	        r.score = rect.true_confidence
-	        r.silhouetteID=rect.silhouette
+	        r.silhouetteID=rect.label
 	        rects.append(r)
-    return rects
+    print len(rects),len(acc_rects)
+    return rects, acc_rects
 
 def draw_rectangles(orig_img, save_img, rects):
 
@@ -280,7 +285,7 @@ def draw_rectangles(orig_img, save_img, rects):
         if bb_rect.silhouetteID is  -1:
             outline_class=(240,255,240)
         else :  
-            outline_class=Classes.code_to_color(bb_rect.silhouetteID)
+            outline_class=vid_classes.code_to_color(bb_rect.silhouetteID)
         dr.rectangle(cor, outline=outline_class)
     # print save_img  
     bb_img.save(save_img)
@@ -344,7 +349,7 @@ def still_image_TENSORBOX_singleclass(frames_list,path_video_folder,hypes_file,w
         for i in progress(range(0, len(frames_list))):
             # img = Image.open(frames_list[i])
             # if img.getbbox()is not None:
-            if Utils_Image.isnotBlack(frames_list[i]) & Utils_Image.check_image_with_pil(frames_list[i]):
+            if utils_image.isnotBlack(frames_list[i]) & utils_image.check_image_with_pil(frames_list[i]):
                 img = imread(frames_list[i])
                 feed = {x_in: img}
                 (np_pred_boxes, np_pred_confidences) = sess.run([pred_boxes, pred_confidences], feed_dict=feed)
@@ -430,7 +435,7 @@ def still_image_TENSORBOX_multiclass(frames_list,path_video_folder,hypes_file,we
         skipped=0
         for i in progress(range(0, len(frames_list))):
 
-            if Utils_Image.isnotBlack(frames_list[i]) & Utils_Image.check_image_with_pil(frames_list[i]):
+            if utils_image.isnotBlack(frames_list[i]) & utils_image.check_image_with_pil(frames_list[i]):
 
                 img = imread(frames_list[i])
                 feed = {x_in: img}
@@ -446,7 +451,7 @@ def still_image_TENSORBOX_multiclass(frames_list,path_video_folder,hypes_file,we
                 #     for j in range(0, np_pred_confidences.shape[2]):
                 #         print np_pred_confidences[i][0][j]
 
-                rects = get_multiclass_rectangles(H, np_pred_confidences, np_pred_boxes, rnn_len=H['rnn_len'])
+                rects, _ = get_multiclass_rectangles(H, np_pred_confidences, np_pred_boxes, rnn_len=H['rnn_len'])
                 pred_anno.rects = rects
                 pred_anno.imageName = frames_list[i]
                 pred_anno.frameNr = frameNr
@@ -466,3 +471,83 @@ def still_image_TENSORBOX_multiclass(frames_list,path_video_folder,hypes_file,we
     #### END TENSORBOX CODE ###
 
     return det_frames_list
+
+def bbox_det_TENSORBOX_multiclass(frames_list,path_video_folder,hypes_file,weights_file,pred_idl):
+    
+    from train import build_forward
+
+    print("Starting DET Phase")
+    
+    if not os.path.exists(path_video_folder+'/'+folder_path_det_frames):
+        os.makedirs(path_video_folder+'/'+folder_path_det_frames)
+        print("Created Folder: %s"%path_video_folder+'/'+folder_path_det_frames)
+    if not os.path.exists(path_video_folder+'/'+folder_path_det_result):
+        os.makedirs(path_video_folder+'/'+folder_path_det_result)
+        print("Created Folder: %s"% path_video_folder+'/'+folder_path_det_result)
+
+    #### START TENSORBOX CODE ###
+
+    lenght=int(len(frames_list))
+    video_info = []
+    ### Opening Hypes file for parameters
+    
+    with open(hypes_file, 'r') as f:
+        H = json.load(f)
+
+    ### Building Network
+
+    tf.reset_default_graph()
+    googlenet = googlenet_load.init(H)
+    x_in = tf.placeholder(tf.float32, name='x_in', shape=[H['image_height'], H['image_width'], 3])
+
+    if H['use_rezoom']:
+        pred_boxes, pred_logits, pred_confidences, pred_confs_deltas, pred_boxes_deltas = build_forward(H, tf.expand_dims(x_in, 0), googlenet, 'test', reuse=None)
+        grid_area = H['grid_height'] * H['grid_width']
+        pred_confidences = tf.reshape(tf.nn.softmax(tf.reshape(pred_confs_deltas, [grid_area * H['rnn_len'], H['num_classes']])), [grid_area, H['rnn_len'], H['num_classes']])
+        pred_logits = tf.reshape(tf.nn.softmax(tf.reshape(pred_logits, [grid_area * H['rnn_len'], H['num_classes']])), [grid_area, H['rnn_len'], H['num_classes']])
+    if H['reregress']:
+        pred_boxes = pred_boxes + pred_boxes_deltas
+    else:
+        pred_boxes, pred_logits, pred_confidences = build_forward(H, tf.expand_dims(x_in, 0), googlenet, 'test', reuse=None)
+
+    saver = tf.train.Saver()
+
+    with tf.Session() as sess:
+
+
+        sess.run(tf.initialize_all_variables())
+        saver.restore(sess, weights_file )##### Restore a Session of the Model to get weights and everything working
+    
+        #### Starting Evaluating the images
+        
+        print("%d Frames to DET"%len(frames_list))
+        
+        progress = progressbar.ProgressBar(widgets=[progressbar.Bar('=', '[', ']'), ' ',progressbar.Percentage(), ' ',progressbar.ETA()])
+        frameNr=0
+        skipped=0
+        for i in progress(range(0, len(frames_list))):
+
+            current_frame = frame.Frame_Info()
+            current_frame.frame=frameNr
+            current_frame.filename=frames_list[i]
+
+            if utils_image.isnotBlack(frames_list[i]) & utils_image.check_image_with_pil(frames_list[i]):
+
+                img = imread(frames_list[i])
+                feed = {x_in: img}
+                (np_pred_boxes,np_pred_logits, np_pred_confidences) = sess.run([pred_boxes,pred_logits, pred_confidences], feed_dict=feed)
+
+                _,rects = get_multiclass_rectangles(H, np_pred_confidences, np_pred_boxes, rnn_len=H['rnn_len'])
+                pick = NMS(rects)
+                print len(rects),len(pick)
+                current_frame.rects=pick
+                frameNr=frameNr+1
+                video_info.insert(len(video_info), current_frame)
+                print len(current_frame.rects)
+            else: skipped=skipped+1 
+
+        print("Skipped %d Black Frames"%skipped)
+
+    #### END TENSORBOX CODE ###
+
+    return video_info

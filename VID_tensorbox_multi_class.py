@@ -1,10 +1,12 @@
 #### My import
 
 import argparse
-import Utils_Image
-import Utils_Video
+import utils_image
+import utils_video
 import Utils_Tensorbox
-import Classes
+import Utils_Imagenet
+import frame
+import vid_classes
 import progressbar
 import time
 import os
@@ -28,7 +30,7 @@ def main():
     parser.add_argument('--output_name', default='output.mp4', type=str)
     parser.add_argument('--hypes', default='./TENSORBOX/hypes/overfeat_rezoom.json', type=str)
     parser.add_argument('--weights', default='./TENSORBOX/data/save.ckpt-1250000', type=str)
-    parser.add_argument('--perc', default=5, type=int)
+    parser.add_argument('--perc', default=2, type=int)
     parser.add_argument('--path_video', default='ILSVRC2015_val_00013002.mp4', type=str)# required=True, type=str)
 
     args = parser.parse_args()
@@ -40,16 +42,17 @@ def main():
     pred_idl = './%s/%s_val.idl' % (path_video_folder, path_video_folder)
     idl_filename=path_video_folder+'/'+path_video_folder+'.idl'
     frame_list=[]
-    frame_list = Utils_Video.extract_idl_from_frames(args.path_video, args.perc, path_video_folder, 'frames/', idl_filename )
+    frame_list = utils_video.extract_idl_from_frames(args.path_video, args.perc, path_video_folder, 'frames/', idl_filename )
 
     progress = progressbar.ProgressBar(widgets=[progressbar.Bar('=', '[', ']'), ' ',progressbar.Percentage(), ' ',progressbar.ETA()])
 
     for image_path in progress(frame_list):
-        Utils_Image.resizeImage(image_path)
-    Utils_Image.resizeImage(-1)
+        utils_image.resizeImage(image_path)
+    utils_image.resizeImage(-1)
 
-    det_frame_list=Utils_Tensorbox.still_image_TENSORBOX_multiclass( frame_list, path_video_folder, args.hypes, args.weights, pred_idl)
-    Utils_Video.make_video_from_list(args.output_name, det_frame_list)
+    video_info=Utils_Tensorbox.bbox_det_TENSORBOX_multiclass( frame_list, path_video_folder, args.hypes, args.weights, pred_idl)
+    tracked_video=utils_video.track_objects(video_info)
+    frame.saveVideoResults(idl_filename,tracked_video)
     end = time.time()
 
     print("Elapsed Time:%d Seconds"%(end-start))

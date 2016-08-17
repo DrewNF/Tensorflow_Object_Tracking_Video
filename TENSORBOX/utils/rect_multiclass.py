@@ -1,12 +1,19 @@
 class Rect_Multiclass(object):
-    def __init__(self, cx, cy, width, height, confidence, silhouette):
+    def __init__(self, cx, cy, width, height, confidence, label_confidence,label):
+        
         self.cx = cx
         self.cy = cy
         self.width = width
         self.height = height
-        self.confidence = confidence
         self.true_confidence = confidence
-        self.silhouette= silhouette
+        self.label_confidence = label_confidence
+        self.label= label
+        self.trackID=-1
+        self.x1 = self.cx - self.width/2.
+        self.x2 = self.cx + self.width/2.
+        self.y1 = self.cy - self.height/2.
+        self.y2 = self.cy + self.height/2.
+
     def overlaps(self, other):
         if abs(self.cx - other.cx) > (self.width + other.width) / 1.5:
             return False
@@ -36,4 +43,5 @@ class Rect_Multiclass(object):
             self.cy == other.cy and
             self.width == other.width and
             self.height == other.height and
-            self.confidence == other.confidence and self.silhouette == other.silhouette)
+            self.confidence == other.confidence and
+            self.label_confidence == other.label_confidence and self.label == other.label and self.trackID == other.trackID)

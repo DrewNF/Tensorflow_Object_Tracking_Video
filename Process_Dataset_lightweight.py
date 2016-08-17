@@ -6,11 +6,12 @@ import argparse
 import time
 from PIL import Image, ImageChops
 import progressbar
-from Utils_Picture import Picture_Info, BB_Rectangle
-import Utils_Image
+from frame import Frame_Info
+from multiclass_rectangle import Rectangle_Multiclass
+import utils_image
 import Utils
-import Classes
-from Classes import Classes_List as CL
+import vid_classes
+from vid_classes import Classes_List as CL
 
 ##### GENERAL VARIABLES #######
 
@@ -104,7 +105,7 @@ def parse_XML_lightweight_txt(bb_XML_file_list, path_val_folder, path_dataset):
             for obj in tree.findall('object'):
                 name = obj.find('name').text
                 class_code= name
-                name = Classes.code_to_class_string(name)
+                name = vid_classes.code_to_class_string(name)
 
                 if name in ["nothing"]:
                     continue
@@ -125,15 +126,15 @@ def parse_XML_lightweight_txt(bb_XML_file_list, path_val_folder, path_dataset):
                     
                     jump=0
                     
-                    image_single_class= Picture_Info()
+                    image_single_class= Frame_Info()
                     image_single_class.dataset_path= path_val_folder
 
-                    image_multi_class= Picture_Info()
+                    image_multi_class= Frame_Info()
                     image_multi_class.dataset_path= path_val_folder
 
 
-                    rectangle_single= BB_Rectangle()
-                    rectangle_multi= BB_Rectangle()
+                    rectangle_single= Rectangle_Multiclass()
+                    rectangle_multi= Rectangle_Multiclass()
                     
                     #xmin x1 letf
                     #ymin y1 bottom
@@ -155,44 +156,44 @@ def parse_XML_lightweight_txt(bb_XML_file_list, path_val_folder, path_dataset):
                             path_orig_file=path_orig_file+'/'+str(node.text)+'.JPEG'
 
                         if tag in ['name']:
-                            if str(Classes.code_to_class_string(str(node.text))) in ["nothing"]:
+                            if str(vid_classes.code_to_class_string(str(node.text))) in ["nothing"]:
                                 jump = 1
                             else : 
                                 jump=0
-                                rectangle_multi.label_chall=int(Classes.class_string_to_comp_code(str(Classes.code_to_class_string(str(node.text)))))
+                                rectangle_multi.label_chall=int(vid_classes.class_string_to_comp_code(str(vid_classes.code_to_class_string(str(node.text)))))
                                 rectangle_multi.label_code=str(node.text)
-                                rectangle_multi.label=Classes.code_to_class_string(str(node.text))
+                                rectangle_multi.label=vid_classes.code_to_class_string(str(node.text))
 
                                 if str(node.text) == class_code: 
                                     same_label = 1
-                                    rectangle_single.label_chall=int(Classes.class_string_to_comp_code(str(Classes.code_to_class_string(str(node.text)))))
+                                    rectangle_single.label_chall=int(vid_classes.class_string_to_comp_code(str(vid_classes.code_to_class_string(str(node.text)))))
                                     rectangle_single.label_code=str(node.text)
-                                    rectangle_single.label=Classes.code_to_class_string(str(node.text))
+                                    rectangle_single.label=vid_classes.code_to_class_string(str(node.text))
                                 else: same_label = 0
                                 
                         if tag in ["xmax"]:
                             if jump == 0:
-                                rectangle_multi.x2=float(Utils_Image.transform_point(image_multi_class.width,image_multi_class.height,width, height,float(node.text), False))
+                                rectangle_multi.x2=float(utils_image.transform_point(image_multi_class.width,image_multi_class.height,width, height,float(node.text), False))
                                 if same_label==1:
-                                    rectangle_single.x2=float(Utils_Image.transform_point(image_multi_class.width,image_multi_class.height,width, height,float(node.text), False))
+                                    rectangle_single.x2=float(utils_image.transform_point(image_multi_class.width,image_multi_class.height,width, height,float(node.text), False))
                         if tag in ["xmin"]:
                             if jump == 0:
-                                rectangle_multi.x1=float(Utils_Image.transform_point(image_multi_class.width,image_multi_class.height,width, height,float(node.text), False))
+                                rectangle_multi.x1=float(utils_image.transform_point(image_multi_class.width,image_multi_class.height,width, height,float(node.text), False))
                                 if same_label==1:
-                                    rectangle_single.x1=float(Utils_Image.transform_point(image_multi_class.width,image_multi_class.height,width, height,float(node.text), False))
+                                    rectangle_single.x1=float(utils_image.transform_point(image_multi_class.width,image_multi_class.height,width, height,float(node.text), False))
                         if tag in ["ymax"]:
                             if jump == 0:
-                                rectangle_multi.y2=float(Utils_Image.transform_point(image_multi_class.width,image_multi_class.height,width, height,float(node.text), False))                            
+                                rectangle_multi.y2=float(utils_image.transform_point(image_multi_class.width,image_multi_class.height,width, height,float(node.text), False))                            
                                 image_multi_class.append_rect(rectangle_multi) 
                                 count_rect=count_rect+1
                                 if same_label==1:
-                                    rectangle_single.y2=float(Utils_Image.transform_point(image_multi_class.width,image_multi_class.height,width, height,float(node.text), False))
+                                    rectangle_single.y2=float(utils_image.transform_point(image_multi_class.width,image_multi_class.height,width, height,float(node.text), False))
                                     image_single_class.append_rect(rectangle_single)
                         if tag in ["ymin"]:
                             if jump == 0:    
-                                rectangle_multi.y1=float(Utils_Image.transform_point(image_multi_class.width,image_multi_class.height,width, height,float(node.text), False))
+                                rectangle_multi.y1=float(utils_image.transform_point(image_multi_class.width,image_multi_class.height,width, height,float(node.text), False))
                                 if same_label==1:
-                                    rectangle_single.y1=float(Utils_Image.transform_point(image_multi_class.width,image_multi_class.height,width, height,float(node.text), False))
+                                    rectangle_single.y1=float(utils_image.transform_point(image_multi_class.width,image_multi_class.height,width, height,float(node.text), False))
 
                     if jump == 0:
                         

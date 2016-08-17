@@ -1,3 +1,5 @@
+
+
 from PIL import Image, ImageChops,ImageDraw, ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 import os
@@ -8,9 +10,33 @@ import numpy as np
 import webcolors
 
 
-
 size = (640,480)
 img_save_type='PNG'
+
+
+def get_Image_List(path, ext):
+    files_list=[]
+    for path, subdirs,files in os.walk(path):
+        for filename in files:
+            if not filename.endswith(ext): continue
+            files_list.append(os.path.join(path, filename))
+    return files_list
+
+def change_extension(file_path, ext_1, ext_2):
+    #Resize Cropping & Padding an image to the 640x480 pixel size
+    if check_image_with_pil(file_path):
+        image = Image.open(file_path)
+    #print'Starting Path: %s'% file_path
+    
+    new_path=file_path.replace(ext_1,ext_2)
+        #print'New Path: %s'%  new_path
+    image.save(new_path, img_save_type)
+    if check_image_with_pil(new_path):
+        #print 'Rename & Save completed Correct for: %s'%new_path 
+        os.remove(file_path)
+    else : print 'ERROR: Rename & Save for: %s'%new_path
+
+### Function to check the existence of an image
 
 def check_image_with_pil(path):
     try:
@@ -18,6 +44,8 @@ def check_image_with_pil(path):
     except IOError:
         return False
     return True
+
+### Functions to resize /and save an image
 
 def resizeImage(file_path): 
     #Resize Cropping & Padding an image to the 640x480 pixel size
@@ -86,6 +114,9 @@ def resize_saveImage(file_path, new_path):
 
     return padding
 
+
+### Function to get the image padd
+
 def getpadd_Image(size_img_0, size_img_1, max_size_0, max_size_1): 
     #Get Padd of the image
     orig_ratio=float(size_img_0/size_img_1)
@@ -100,6 +131,8 @@ def getpadd_Image(size_img_0, size_img_1, max_size_0, max_size_1):
     padding[1] = max( (max_size_1 - new_img_1) / 2, 0 )
 
     return padding
+
+### Functions to manage the point resizing
 
 def transform_point(size_img_0, size_img_1, max_size_0, max_size_1, point, xory):
     orig_ratio=float(size_img_0/size_img_1)
@@ -191,6 +224,8 @@ def get_orig_rect((size_img_0, size_img_1), (max_size_0, max_size_1), (x1point, 
 
     return (newx1,newy1,newx2,newy2)
 
+### Functions for colors managing
+
 def centroid_histogram(clt):
     # grab the number of different clusters and create a histogram
     # based on the number of pixels assigned to each cluster
@@ -202,29 +237,6 @@ def centroid_histogram(clt):
     hist /= hist.sum()
     # return the histogram
     return hist
-
-def get_Image_List(path, ext):
-    files_list=[]
-    for path, subdirs,files in os.walk(path):
-        for filename in files:
-            if not filename.endswith(ext): continue
-            files_list.append(os.path.join(path, filename))
-    return files_list
-
-def change_extension(file_path, ext_1, ext_2):
-    #Resize Cropping & Padding an image to the 640x480 pixel size
-    if check_image_with_pil(file_path):
-        image = Image.open(file_path)
-    #print'Starting Path: %s'% file_path
-    
-    new_path=file_path.replace(ext_1,ext_2)
-        #print'New Path: %s'%  new_path
-    image.save(new_path, img_save_type)
-    if check_image_with_pil(new_path):
-        #print 'Rename & Save completed Correct for: %s'%new_path 
-        os.remove(file_path)
-    else : print 'ERROR: Rename & Save for: %s'%new_path
-
 
 def closest_colour(requested_colour):
     min_colours = {}

@@ -4,7 +4,7 @@ import time
 from PIL import Image, ImageChops
 import progressbar
 import argparse
-import Utils_Image
+import utils_image
 
 ##### MAIN ############
 
@@ -20,15 +20,15 @@ def main():
 
     start = time.time()
 
-    image_list= Utils_Image.get_Image_List(args.dataset_path, args.oldext)
+    image_list= utils_image.get_Image_List(args.dataset_path, args.oldext)
 
     progress = progressbar.ProgressBar(widgets=[progressbar.Bar('=', '[', ']'), ' ',progressbar.Percentage(), ' ',progressbar.ETA()])
 
     print "Start Processing... May take a while..."
 
     for image_path in progress(image_list):
-        Utils_Image.resizeImage(image_path)
-        Utils_Image.change_extension(image_path,args.oldext,args.newext)
+        utils_image.resizeImage(image_path)
+        utils_image.change_extension(image_path,args.oldext,args.newext)
  
     end = time.time()
     print("Parsed: %d Image of the Dataset"%(len(image_list)))
