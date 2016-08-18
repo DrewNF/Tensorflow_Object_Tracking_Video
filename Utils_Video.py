@@ -89,8 +89,6 @@ def extract_idl_from_frames(vid_path, video_perc, path_video_folder, folder_path
 
 def track_objects(video_info):
 
-    class_code_string_list= ['n02691156','n02419796','n02131653','n02834778','n01503061','n02924116','n02958343','n02402425','n02084071','n02121808','n02503517','n02118333','n02510455','n02342885','n02374451','n02129165','n01674464','n02484322','n03790512','n02324045','n02509815','n02411705','n01726692','n02355227','n02129604','n04468005','n01662784','n04530566','n02062744','n02391049']
-
     previous_frame= None
     previous_num_obj=-1
 
@@ -126,9 +124,9 @@ def track_objects(video_info):
                     print "Lenght previous rects array: %d"%len(previous_frame.rects)
                     print "max_rect track ID: %d"%max_rect.trackID
                     print "max_rect label: %s"%max_rect.label
-                    current_rect.load_labeled_rect(max_rect.trackID, max_rect.true_confidence, max_rect.label_confidence, max_rect.x1,max_rect.y1,max_rect.x2 ,max_rect.y2, max_rect.label, max_rect.label, max_rect.label)
+                    current_rect.load_labeled_rect(max_rect.trackID, max_rect.true_confidence, max_rect.label_confidence, max_rect.x1,max_rect.y1,max_rect.x2 ,max_rect.y2, max_rect.label, max_rect.label_chall, max_rect.label_code)
                     current_frame.append_labeled_rect(current_rect)
-                    rect.load_label(max_rect.trackID,max_rect.label_confidence, max_rect.label, max_rect.label, max_rect.label)
+                    rect.load_label(max_rect.trackID,max_rect.label_confidence, max_rect.label, max_rect.label_chall, max_rect.label_code)
                     previous_frame.rects.pop(max_id)
                     previous_num_obj=previous_num_obj-1
                 else:
@@ -147,8 +145,8 @@ def track_objects(video_info):
                     cropped_img_array.append(cropped_img_name)
 
                     label, confidence = Utils_Imagenet.run_inception_once(cropped_img_name)
-                    rect.load_label(trackID,confidence, vid_classes.code_to_class_string(label), class_code_string_list[vid_classes.class_string_to_comp_code(vid_classes.code_to_class_string(label))], label)
-                    current_rect.load_labeled_rect(trackID, rect.true_confidence, confidence, rect.x1,rect.y1,rect.x2 ,rect.y2, vid_classes.code_to_class_string(label), class_code_string_list[vid_classes.class_string_to_comp_code(vid_classes.code_to_class_string(label))], label)
+                    rect.load_label(trackID,confidence, vid_classes.code_to_class_string(label), vid_classes.code_to_code_chall(vid_classes), label)
+                    current_rect.load_labeled_rect(trackID, rect.true_confidence, confidence, rect.x1,rect.y1,rect.x2 ,rect.y2, vid_classes.code_to_class_string(label), vid_classes.code_to_code_chall(vid_classes), label)
                     print "current_rect track ID: %d"%current_rect.trackID
                     print "current_rect label: %s"%current_rect.label
                     current_frame.append_labeled_rect(current_rect)
@@ -168,8 +166,8 @@ def track_objects(video_info):
                 cropped_img_array.append(cropped_img_name)
 
                 label, confidence = Utils_Imagenet.run_inception_once(cropped_img_name)
-                rect.load_label(trackID,confidence, vid_classes.code_to_class_string(label), class_code_string_list[vid_classes.class_string_to_comp_code(vid_classes.code_to_class_string(label))], label)
-                current_rect.load_labeled_rect(trackID, rect.true_confidence, confidence, rect.x1,rect.y1,rect.x2 ,rect.y2, vid_classes.code_to_class_string(label), class_code_string_list[vid_classes.class_string_to_comp_code(vid_classes.code_to_class_string(label))], label)
+                rect.load_label(trackID,confidence, vid_classes.code_to_class_string(label), vid_classes.code_to_code_chall(vid_classes), label)
+                current_rect.load_labeled_rect(trackID, rect.true_confidence, confidence, rect.x1,rect.y1,rect.x2 ,rect.y2, vid_classes.code_to_class_string(label), vid_classes.code_to_code_chall(vid_classes), label)
                 current_frame.append_labeled_rect(current_rect)
                 
                 trackID=trackID+1

@@ -32,7 +32,41 @@ def code_to_class_string(argument):
                     'n04530566': "watercraft",
                     'n02062744': "whale",
                     'n02391049': "zebra"            }
-    return switcher.get(argument, "nothing ")
+    return switcher.get(argument, "nothing")
+
+def code_to_code_chall(argument):
+    switcher = {
+                    'n02691156': 1,
+                    'n02419796': 2,
+                    'n02131653': 3,
+                    'n02834778': 4,
+                    'n01503061': 5,
+                    'n02924116': 6,
+                    'n02958343': 7,
+                    'n02402425': 8,
+                    'n02084071': 9,
+                    'n02121808': 10,
+                    'n02503517': 11,
+                    'n02118333': 12,
+                    'n02510455': 13,
+                    'n02342885': 14,
+                    'n02374451': 15,
+                    'n02129165': 16,
+                    'n01674464': 17,
+                    'n02484322': 18,
+                    'n03790512': 19,
+                    'n02324045': 20,
+                    'n02509815': 21,
+                    'n02411705': 22,
+                    'n01726692': 23,
+                    'n02355227': 24,
+                    'n02129604': 25,
+                    'n04468005': 26,
+                    'n01662784': 27,
+                    'n04530566': 28,
+                    'n02062744': 29,
+                    'n02391049': 30            }
+    return switcher.get(argument, "nothing")
 
 def class_string_to_comp_code(argument):
     switcher = {
@@ -104,6 +138,9 @@ def code_comp_to_class(argument):
     return switcher.get(argument, "nothing")
 
 
+
+### Color Switching 
+
 def name_string_to_color(argument):
     switcher = {
                     'airplane': 'black' ,
@@ -173,6 +210,41 @@ def code_to_color(argument):
                       }
     return switcher.get(argument,(0,0,0) )
 
+def label_to_color(argument):
+    switcher = {
+                    'n02691156':(0,0,0),
+                    'n02419796':(255,255,255),
+                    'n02131653':(255,0,0),
+                    'n02834778':(0,255,0),
+                    'n01503061':(0,0,255),
+                    'n02924116':(255,255,0),
+                    'n02958343':(0,255,255),
+                    'n02402425':(255,0,255),
+                    'n02084071':(192,192,192),
+                    'n02121808':(128,128,128),
+                    'n02503517':(128,0,0),
+                    'n02118333':(128,128,0),
+                    'n02510455':(0,128,0),
+                    'n02342885':(128,0,128),
+                    'n02374451':(0,128,128),
+                    'n02129165':(0,0,128),
+                    'n01674464':(219,112,147),
+                    'n02484322':(255,20,147),
+                    'n03790512':(127,255,212),
+                    'n02324045':(176,224,230),
+                    'n02509815':(0,255,127),
+                    'n02411705':(46,139,87),
+                    'n01726692':(34,139,34),
+                    'n02355227':(255,69,0),
+                    'n02129604':(255,140,0),
+                    'n04468005':(255,165,0),
+                    'n01662784':(184,134,11),
+                    'n04530566':(218,165,32),
+                    'n02062744':(139,0,0),
+                    'n02391049':(240,128,128) 
+                      }
+    return switcher.get(argument,(0,0,0) )
+
 
  ####### COLOR LEGEND #######
  #		Black 	#000000 	(0,0,0)
@@ -209,10 +281,10 @@ def code_to_color(argument):
 
 class Classes_List(object):
         
-    class_name_string_list= ['airplane','antelope','bear','bicycle','bird','bus','car','cattle','dog','domestic_cat','elephant','fox','giant_panda','hamster','horse','lion','lizard','monkey','motorcycle','rabbit','red_panda','sheep','snake','squirrel','tiger','train','turtle','watercraft','whale','zebra']
+     class_name_string_list= ['airplane','antelope','bear','bicycle','bird','bus','car','cattle','dog','domestic_cat','elephant','fox','giant_panda','hamster','horse','lion','lizard','monkey','motorcycle','rabbit','red_panda','sheep','snake','squirrel','tiger','train','turtle','watercraft','whale','zebra']
 
-    class_code_string_list= ['n02691156','n02419796','n02131653','n02834778','n01503061','n02924116','n02958343','n02402425','n02084071','n02121808','n02503517','n02118333','n02510455','n02342885','n02374451','n02129165','n01674464','n02484322','n03790512','n02324045','n02509815','n02411705','n01726692','n02355227','n02129604','n04468005','n01662784','n04530566','n02062744','n02391049']
+     class_code_string_list= ['n02691156','n02419796','n02131653','n02834778','n01503061','n02924116','n02958343','n02402425','n02084071','n02121808','n02503517','n02118333','n02510455','n02342885','n02374451','n02129165','n01674464','n02484322','n03790512','n02324045','n02509815','n02411705','n01726692','n02355227','n02129604','n04468005','n01662784','n04530566','n02062744','n02391049']
 
-    colors_string_list=['black' ,'white','red','lime' ,'blue','yellow','cyan', 'magenta','silver', 'gray' ,'maroon' ,'olive' ,'green' ,'purple' ,'teal' ,'navy' ,'pale violet red' ,'deep pink' ,'aqua marine' ,'powder blue' ,'spring green' ,'sea green' ,'forest green' ,'orange red' ,'dark orange' ,'orange' ,'dark golden rod' ,'golden rod' ,'dark red' ,'light coral'  ]
+     colors_string_list=['black' ,'white','red','lime' ,'blue','yellow','cyan', 'magenta','silver', 'gray' ,'maroon' ,'olive' ,'green' ,'purple' ,'teal' ,'navy' ,'pale violet red' ,'deep pink' ,'aqua marine' ,'powder blue' ,'spring green' ,'sea green' ,'forest green' ,'orange red' ,'dark orange' ,'orange' ,'dark golden rod' ,'golden rod' ,'dark red' ,'light coral'  ]
 
-    colors_code_list=[(0,0,0),(255,255,255),(255,0,0),(0,255,0),(0,0,255),(255,255,0),(0,255,255),(255,0,255),(192,192,192),(128,128,128),(128,0,0),(128,128,0),(0,128,0),(128,0,128),(0,128,128),(0,0,128),(219,112,147),(255,20,147),(127,255,212),(176,224,230),(0,255,127),(46,139,87),(34,139,34),(255,69,0),(255,140,0),(255,165,0),(184,134,11),(218,165,32),(139,0,0),(240,128,128)]
+     colors_code_list=[(0,0,0),(255,255,255),(255,0,0),(0,255,0),(0,0,255),(255,255,0),(0,255,255),(255,0,255),(192,192,192),(128,128,128),(128,0,0),(128,128,0),(0,128,0),(128,0,128),(0,128,128),(0,0,128),(219,112,147),(255,20,147),(127,255,212),(176,224,230),(0,255,127),(46,139,87),(34,139,34),(255,69,0),(255,140,0),(255,165,0),(184,134,11),(218,165,32),(139,0,0),(240,128,128)]

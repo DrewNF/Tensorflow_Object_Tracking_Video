@@ -182,44 +182,6 @@ def print_logits(logits):
     print str(index+1),str(higher)
     return index+1 , higher
 
-def get_singleclass_rectangles(H, confidences, boxes, min_conf,rnn_len=1):
-    boxes_r = np.reshape(boxes, (-1,
-                                 H["grid_height"],
-                                 H["grid_width"],
-                                 rnn_len,
-                                 4))
-    confidences_r = np.reshape(confidences, (-1,
-                                             H["grid_height"],
-                                             H["grid_width"],
-                                             rnn_len,
-                                             2))
-    cell_pix_size = H['region_size']
-    all_rects = [[[] for _ in range(H["grid_width"])] for _ in range(H["grid_height"])]
-
-    for n in range(0, H['rnn_len']):
-        for y in range(H["grid_height"]):
-            for x in range(H["grid_width"]):
-                bbox = boxes_r[0, y, x, n, :]
-                conf = confidences_r[0, y, x, n, 1]
-                abs_cx = int(bbox[0]) + cell_pix_size/2 + cell_pix_size * x
-                abs_cy = int(bbox[1]) + cell_pix_size/2 + cell_pix_size * y
-                h = max(1, bbox[3])
-                w = max(1, bbox[2])
-                #w = h * 0.4
-                all_rects[y][x].append(Rect(abs_cx,abs_cy,w,h,conf))
-    all_rects_r = [r for row in all_rects for cell in row for r in cell if r.true_confidence > min_conf]
-    rects = []
-    for rect in all_rects_r:
-        r = al.AnnoRect()
-        r.x1 = rect.cx - rect.width/2.
-        r.x2 = rect.cx + rect.width/2.
-        r.y1 = rect.cy - rect.height/2.
-        r.y2 = rect.cy + rect.height/2.
-        r.score = rect.true_confidence
-        rects.append(r)
-    
-    return rects
-
 def get_multiclass_rectangles(H, confidences, boxes, rnn_len):
     boxes_r = np.reshape(boxes, (-1,
                                  H["grid_height"],
@@ -289,92 +251,6 @@ def draw_rectangles(orig_img, save_img, rects):
         dr.rectangle(cor, outline=outline_class)
     # print save_img  
     bb_img.save(save_img)
-
-def still_image_TENSORBOX_singleclass(frames_list,path_video_folder,hypes_file,weights_file,pred_idl, min_conf=0.9):
-    
-    from train import build_forward
-
-    print("Starting DET Phase")
-    
-    if not os.path.exists(path_video_folder+'/'+folder_path_det_frames):
-        os.makedirs(path_video_folder+'/'+folder_path_det_frames)
-        print("Created Folder: %s"%path_video_folder+'/'+folder_path_det_frames)
-    if not os.path.exists(path_video_folder+'/'+folder_path_det_result):
-        os.makedirs(path_video_folder+'/'+folder_path_det_result)
-        print("Created Folder: %s"% path_video_folder+'/'+folder_path_det_result)
-
-    det_frames_list=[]
-
-    #### START TENSORBOX CODE ###
-
-    ### Opening Hypes file for parameters
-    
-    with open(hypes_file, 'r') as f:
-        H = json.load(f)
-
-    ### Get Annotation List of all the image to test
-    idl_filename=path_video_folder+'/'+path_video_folder+'.idl'
-
-    ### Building Network
-
-    tf.reset_default_graph()
-    googlenet = googlenet_load.init(H)
-    x_in = tf.placeholder(tf.float32, name='x_in', shape=[H['image_height'], H['image_width'], 3])
-
-    if H['use_rezoom']:
-        pred_boxes, pred_logits, pred_confidences, pred_confs_deltas, pred_boxes_deltas = build_forward(H, tf.expand_dims(x_in, 0), googlenet, 'test', reuse=None)
-        grid_area = H['grid_height'] * H['grid_width']
-        pred_confidences = tf.reshape(tf.nn.softmax(tf.reshape(pred_confs_deltas, [grid_area * H['rnn_len'], 2])), [grid_area, H['rnn_len'], 2])
-    if H['reregress']:
-        pred_boxes = pred_boxes + pred_boxes_deltas
-    else:
-        pred_boxes, pred_logits, pred_confidences = build_forward(H, tf.expand_dims(x_in, 0), googlenet, 'test', reuse=None)
-
-    saver = tf.train.Saver()
-
-    with tf.Session() as sess:
-        sess.run(tf.initialize_all_variables())
-        saver.restore(sess, weights_file )##### Restore a Session of the Model to get weights and everything working
-    
-        annolist = al.AnnoList()
-    
-        #### Starting Evaluating the images
-        lenght=int(len(frames_list))
-        
-        print("%d Frames to DET"%len(frames_list))
-        
-        progress = progressbar.ProgressBar(widgets=[progressbar.Bar('=', '[', ']'), ' ',progressbar.Percentage(), ' ',progressbar.ETA()])
-        frameNr=0
-        skipped=0
-        for i in progress(range(0, len(frames_list))):
-            # img = Image.open(frames_list[i])
-            # if img.getbbox()is not None:
-            if utils_image.isnotBlack(frames_list[i]) & utils_image.check_image_with_pil(frames_list[i]):
-                img = imread(frames_list[i])
-                feed = {x_in: img}
-                (np_pred_boxes, np_pred_confidences) = sess.run([pred_boxes, pred_confidences], feed_dict=feed)
-
-                pred_anno = al.Annotation()        
-            
-                rects = get_singleclass_rectangles(H, np_pred_confidences, np_pred_boxes,min_conf, rnn_len=H['rnn_len'])
-                pred_anno.rects = rects
-                pred_anno.imageName = frames_list[i]
-                pred_anno.frameNr = frameNr
-                frameNr=frameNr+1
-                pick = NMS(rects)
-                draw_rectangles(frames_list[i],frames_list[i], pick)
-
-                det_frames_list.append(frames_list[i])            
-                annolist.append(pred_anno)
-            else: skipped=skipped+1 
-
-    saveTextResults(idl_filename,annolist)
-    annolist.save(pred_idl)
-    print("Skipped %d Black Frames"%skipped)
-
-    #### END TENSORBOX CODE ###
-
-    return det_frames_list
 
 def still_image_TENSORBOX_multiclass(frames_list,path_video_folder,hypes_file,weights_file,pred_idl):
     

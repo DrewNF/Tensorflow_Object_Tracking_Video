@@ -150,7 +150,8 @@ def parse_XML_to_multiclass_txt(bb_XML_file_list, path_val_folder, path_dataset)
                                 jump = 1
                             else : 
                                 jump=0
-                                rectangle_multi.label_chall=int(vid_classes.class_string_to_comp_code(str(vid_classes.code_to_class_string(str(node.text)))))
+                                print str(node.text)
+                                rectangle_multi.label_chall=int(vid_classes.code_to_code_chall(str(node.text)))
                                 rectangle_multi.label_code=str(node.text)
                                 rectangle_multi.label=vid_classes.code_to_class_string(str(node.text))      
                         if tag in ["xmax"]:

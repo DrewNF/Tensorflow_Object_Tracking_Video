@@ -32,7 +32,7 @@ class Rectangle_Multiclass(object):
         self.label_confidence = -1
         self.label= 'Not Set'
         self.label_chall='Not Set'
-        self.label_code=-1
+        self.label_code= 'Not Set'
 
     ### Safe Loading Values Functions
 
@@ -52,6 +52,17 @@ class Rectangle_Multiclass(object):
         self.label_confidence=label_conf
         self.true_confidence=rect_conf
 
+    def load_BBox(self, x1, x2, y1, y2, label, label_chall, code):
+
+        self.x1 = x1
+        self.y1 = y1
+        self.x2 = x2
+        self.y2 = y2
+
+        self.label=label
+        self.label_code=code
+        self.label_chall=label_chall
+
     def set_unlabeled_rect(self, cx, cy, width, height, confidence):
         # Set unlabeled rect info to be processed forward
         self.cx = cx
@@ -70,9 +81,7 @@ class Rectangle_Multiclass(object):
         self.label=label
         self.label_code=code
         self.label_chall=label_chall
-
         self.trackID=trackID
-
         self.label_confidence=label_conf
 
     ### Safe Duplicate functions 

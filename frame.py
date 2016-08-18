@@ -1,6 +1,7 @@
 import copy 
 import os
 import multiclass_rectangle
+from multiclass_rectangle import Rectangle_Multiclass
 import vid_classes
 
 #####################################################################################################################################################################
@@ -51,7 +52,8 @@ class Frame_Info(object):
 
     def append_rect(self, rectangle):
         """Adding rect to the picture_info."""
-        rect= BB_Rectangle().BB_rect( rectangle.x1, rectangle.x2, rectangle.y1, rectangle.y2, rectangle.label, rectangle.label_chall, rectangle.label_code)
+        rect= Rectangle_Multiclass()
+        rect.load_BBox( rectangle.x1, rectangle.x2, rectangle.y1, rectangle.y2, rectangle.label, rectangle.label_chall, rectangle.label_code)
         index= len(self.rects)
         self.rects.insert(index, rect)
 
