@@ -34,9 +34,15 @@
 # """
 
 import numpy as np
+import os
 import tensorflow as tf
 import sys
 import vid_classes
+import progressbar
+import utils_image
+import multiclass_rectangle
+from PIL import Image
+
 
 
 modelFullPath = 'output_model/retrained_graph.pb' ##### Put the 
@@ -60,7 +66,7 @@ def run_inception_once(picture_path):
     image_data = tf.gfile.FastGFile(picture_path, 'rb').read()
 
     # Loads label file, strips off carriage return
-    label_lines = [line.rstrip() for line in tf.gfile.GFile("/tf_files/retrained_labels.txt")]
+    label_lines = [line.rstrip() for line in tf.gfile.GFile(label_file)]
     # Creates graph from saved GraphDef.
     create_graph()
     saver = tf.train.Saver()  # defaults to saving all variables - in this case w and b
@@ -86,44 +92,103 @@ def run_inception_once(picture_path):
 
         return label_lines[top_k[0]],predictions[top_k[0]]
 
-def run_inception(pictures_path_array):
+# def run_inception(pictures_path_array):
 
-    labels=[]
-    confidences=[]
-    # Creates graph from saved GraphDef.
+#     labels=[]
+#     confidences=[]
+#     # Creates graph from saved GraphDef.
+#     # Creates graph from saved GraphDef.
+#     create_graph()
+#     saver = tf.train.Saver()  # defaults to saving all variables - in this case w and b
+    
+#     with tf.Session() as sess:
+#         sess.run(tf.initialize_all_variables())
+#         # load_checkpoint(sess, saver)
+
+#         softmax_tensor = sess.graph.get_tensor_by_name('final_result:0')
+
+#         for picture_path in pictures_path_array:
+
+#             if not tf.gfile.Exists(picture_path):
+#                 tf.logging.fatal('File does not exist %s', picture_path)
+#                 sys.exit()
+
+#             image_data = tf.gfile.FastGFile(picture_path, 'rb').read()
+#             predictions = sess.run(softmax_tensor,
+#                                    {'DecodeJpeg/contents:0': image_data})
+#             predictions = np.squeeze(predictions)
+
+#             top_k = predictions.argsort()[-5:][::-1]  # Getting top 5 predictions
+
+#             #CHECK OUTPUT
+#             # for node_id in top_k:
+#             #     human_string = vid_classes.code_comp_to_class(node_id)
+#             #     score = predictions[node_id]
+#             #     print('%s (score = %.5f)' % (human_string, score))
+
+#             #CHECK BEST LABEL
+#             #print "Best Label: %s with conf: %.5f"%(vid_classes.code_comp_to_class(top_k[0]),predictions[top_k[0]])
+
+#             labels.append(vid_classes.code_comp_to_class(top_k[0]), len(labels))
+#             confidences.append(predictions[top_k[0]], len(confidences))
+
+#         return labels, confidences
+
+
+def label_video(video_info, frames):
+
+    progress = progressbar.ProgressBar(widgets=[progressbar.Bar('=', '[', ']'), ' ',progressbar.Percentage(), ' ',progressbar.ETA()])
+    if not os.path.exists(frames[0].split("/")[0]+"/cropped_rects/"):
+        os.makedirs(frames[0].split("/")[0]+"/cropped_rects/")
+        print("Created Folder: %s"%(frames[0].split("/")[0]+"/cropped_rects/"))
+    # Loads label file, strips off carriage return
+    label_lines = [line.rstrip() for line in tf.gfile.GFile(label_file)]
     # Creates graph from saved GraphDef.
     create_graph()
     saver = tf.train.Saver()  # defaults to saving all variables - in this case w and b
-    
     with tf.Session() as sess:
         sess.run(tf.initialize_all_variables())
         # load_checkpoint(sess, saver)
-
         softmax_tensor = sess.graph.get_tensor_by_name('final_result:0')
+        idx=0
+        for frame_info in progress(video_info):
+            print "Tracking Frame Nr: %d"%frame_info.frame
+            print len(frame_info.rects)
+            rect_id=0
+            frame_info.filename = frames[idx]
+            for rect in frame_info.rects:
+                
+                img= Image.open(frames[idx])
+                width, height= utils_image.get_Image_Size(frames[idx])
+                print rect.x1,rect.y1,rect.x2 ,rect.y2
+                x1,y1,x2,y2=utils_image.get_orig_rect(width, height,640, 480, rect.x1,rect.y1,rect.x2 ,rect.y2)
+                print x1,y1,x2,y2
+                cor = (min(x1,x2),min(y1,y2),max(x1,x2),max(y1,y2))
+                print cor
+                cropped_img=img.crop(cor)
+                cropped_img_name=frames[0].split("/")[0]+"/cropped_rects/cropped_frame_%d_rect_%d.JPEG"%(frame_info.frame, rect_id)
+                cropped_img.save(cropped_img_name)
+                print "Frame: %d Rect: %d conf: %.2f"%(frame_info.frame, rect_id, rect.true_confidence)
+                if not tf.gfile.Exists(cropped_img_name):
+                    tf.logging.fatal('File does not exist %s', cropped_img_name)
+                    sys.exit()
+                image_data = tf.gfile.FastGFile(cropped_img_name, 'rb').read()
 
-        for picture_path in pictures_path_array:
+                predictions = sess.run(softmax_tensor,{'DecodeJpeg/contents:0': image_data})
+                predictions = np.squeeze(predictions)
 
-            if not tf.gfile.Exists(picture_path):
-                tf.logging.fatal('File does not exist %s', picture_path)
-                sys.exit()
+                top_k = predictions.argsort()[-3:][::-1]  # Getting top 5 predictions
 
-            image_data = tf.gfile.FastGFile(picture_path, 'rb').read()
-            predictions = sess.run(softmax_tensor,
-                                   {'DecodeJpeg/contents:0': image_data})
-            predictions = np.squeeze(predictions)
+                #CHECK OUTPUT
+                for node_id in top_k:
+                    human_string = label_lines[node_id]
+                    score = predictions[node_id]
+                    print('%s (score = %.5f)' % (human_string, score))
 
-            top_k = predictions.argsort()[-5:][::-1]  # Getting top 5 predictions
-
-            #CHECK OUTPUT
-            # for node_id in top_k:
-            #     human_string = vid_classes.code_comp_to_class(node_id)
-            #     score = predictions[node_id]
-            #     print('%s (score = %.5f)' % (human_string, score))
-
-            #CHECK BEST LABEL
-            #print "Best Label: %s with conf: %.5f"%(vid_classes.code_comp_to_class(top_k[0]),predictions[top_k[0]])
-
-            labels.append(vid_classes.code_comp_to_class(top_k[0]), len(labels))
-            confidences.append(predictions[top_k[0]], len(confidences))
-
-        return labels, confidences
+                # CHECK BEST LABEL
+                print "Best Label: %s with conf: %.5f"%(vid_classes.code_to_class_string(label_lines[top_k[0]]),predictions[top_k[0]])
+                rect.set_rect_coordinates(x1,x2,y1,y2)
+                rect.set_label(predictions[top_k[0]], vid_classes.code_to_class_string(label_lines[top_k[0]]), top_k[0], label_lines[top_k[0]])
+                rect_id=rect_id+1
+            idx=idx+1
+    return video_info
