@@ -117,7 +117,9 @@ The first one has problems in the frames order, this is why you will see so much
   2. **Process_Dataset_lightweight.py**: Process your dataset with a lightweight approach making, you will obtain less bbox and files for each class;
   3. **Resize_Dataset.py**: Resize your dataset to 640x480 PNG images;
   4. **Test_Processed_Data.py**: Will test that the process end well without errors.
+
 I've also add some file scripts to pre process and prepare the dataset to train the last component, the Inception Model, you can find them in a subfolder of the dataset script folder.
+
 ## 7.Copyright
 
 According to the LICENSE file of the original code,
