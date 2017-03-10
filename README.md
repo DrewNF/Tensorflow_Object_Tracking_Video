@@ -13,10 +13,10 @@ The Project follow the below **index**:
 3. **[YOLO Script Usage](#3yolo-script-usage)**
       1. **[Setting Parameters](#isetting-parameters);**
       2. **[Usage](#iiusage).**
-4. **[TENSORBOX Script Usage](#4tensorbox-multi_class-script-usage)**
+4. **[VID TENSORBOX Script Usage](#4vid-tensorbox-script-usage)**
       1. **[Setting Parameters](#isetting-parameters-2);**
       2. **[Usage](#iiusage-2).**
-5. **[TENSORBOX TESTS FILES](#5tensorbox-tests);**
+5. **[TENSORBOX Tests Files](#5tensorbox-tests);**
 6. **[Dataset Scripts](#6dataset-script);**
 7. **[Copyright](#7copyright);**
 8. **[State of the Project](#8state-of-the-project).**
@@ -39,6 +39,7 @@ So the whole script architecture will be made of several component in cascade:
 My project use many online tensorflow projects, as: 
   - [YOLO Tensorflow](https://github.com/gliese581gg/YOLO_tensorflow);
   - [TensorBox](https://github.com/Russell91/TensorBox).
+  - [Inception](https://github.com/tensorflow/models/tree/master/inception).
 
 ## 2.Requirement & Installation
 To install the script you only need to download the Repository.
@@ -107,10 +108,11 @@ The first one has problems in the frames order, this is why you will see so much
   ```  
 
 ## 5.Tensorbox Tests
-  In the files you can find two folders containing some result of the runs of the TENSOBOX scripts one for the single and one for the multi class.
+  In the folder video_result_OVT you can find files result of the runs of the VID TENSOBOX scripts.
   
 ## 6.Dataset Scripts
   All the scripts below are for the VID classes so if you wonna adapt them for other you have to simply change the Classes.py file where are defined the correspondencies between codes and names. All the data on the image are made respect a specific Image Ratio, because TENSORBOX works only with 640x480 PNG images, you will have to change the code a little to adapt to your needs.
+  I've also add some file scripts to pre process and prepare the dataset to train the last component, the Inception Model.
   I will provide four scripts:
   1. **Process_Dataset_heavy.py**: Process your dataset with a brute force approach, you will obtain more bbox and files for each class;
   2. **Process_Dataset_lightweight.py**: Process your dataset with a lightweight approach making, you will obtain less bbox and files for each class;
@@ -128,5 +130,5 @@ According to the LICENSE file of the original code,
 
   - Support YOLO (SingleClass) DET Algorithm;
   - Support Training **ONLY TENSOBOX and INCEPTION Training**;
-  - **USE OF TEMPORAL INFORMATION**;
+  - **USE OF TEMPORAL INFORMATION** [This are retrieved through some post processing algorithm I've implemented in the Utils_Video.py file];
   - Modular Architecture composed in cascade by: Tensorbox (as General Object Detector), Tracker and Smoother and Inception (as Object Classifier);
