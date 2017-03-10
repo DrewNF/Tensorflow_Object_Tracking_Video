@@ -13,16 +13,13 @@ The Project follow the below **index**:
 3. **[YOLO Script Usage](#3yolo-script-usage)**
       1. **[Setting Parameters](#isetting-parameters);**
       2. **[Usage](#iiusage).**
-4. **[TENSORBOX SINGLE_CLASS Script Usage](#4tensorbox-single_class-script-usage)**
-      1. **[Setting Parameters](#isetting-parameters-1);**
-      2. **[Usage](#iiusage-1).**
-5. **[TENSORBOX MULTICLASS Script Usage](#5tensorbox-multi_class-script-usage)**
+4. **[TENSORBOX Script Usage](#4tensorbox-multi_class-script-usage)**
       1. **[Setting Parameters](#isetting-parameters-2);**
       2. **[Usage](#iiusage-2).**
-6. **[TENSORBOX TESTS FILES](#6tensorbox-tests);**
-7. **[Dataset Scripts](#7dataset-script);**
-8. **[Copyright](#8copyright);**
-9. **[State of the Project](#9state-of-the-project).**
+5. **[TENSORBOX TESTS FILES](#5tensorbox-tests);**
+6. **[Dataset Scripts](#6dataset-script);**
+7. **[Copyright](#7copyright);**
+8. **[State of the Project](#8state-of-the-project).**
 
 
 ## 1.Introduction
@@ -38,7 +35,6 @@ So the whole script architecture will be made of several component in cascade:
 > Notice that the Still Image Detection component could be unique or decompose into two sub-component:
 >  1. First: determinate "Where" in the Frame;
 >  2. Second: determinate "What" in the Frame.
-
 
 My project use many online tensorflow projects, as: 
   - [YOLO Tensorflow](https://github.com/gliese581gg/YOLO_tensorflow);
@@ -88,30 +84,7 @@ The first one has problems in the frames order, this is why you will see so much
 
 ![alt tag](images/DET_frame_example.jpg)
 
-## 4.TENSORBOX SINGLE_CLASS Script Usage
-### i.Setting Parameters
-  This are the inline terminal argmunts taken from the script, most of them aren't required.
-  As before, only the video path **must** be specified when we call the script:
-        
-  ```python      
-    parser.add_argument('--output_name', default='output.mp4', type=str)
-    parser.add_argument('--hypes', default='./hypes/overfeat_rezoom.json', type=str)
-    parser.add_argument('--weights', default='./output/save.ckpt-1090000', type=str)
-    parser.add_argument('--perc', default=2, type=int)
-    parser.add_argument('--path_video', required=True, type=str)
-  ```
-  I will soon put a weight file to download.
-  Otherwise in the link below you can easily learn how to train TENSORBOX on you datset [here](##5dataset-script) some script to parse and prepare your dataset for the VID classes.
-  For TENSORBOX knowledge [here](https://github.com/Russell91/TensorBox) you can find Original code(Tensorflow & Caffe implementation).
-  
-### ii.Usage
-  After Set the Parameters, we can proceed and run the script:
-  
-  ```python
-    python VID_tensorbox_single_class.py --path_video video.mp4
-  ```
-
-## 5.TENSORBOX MULTI_CLASS Script Usage
+## 4.VID TENSORBOX Script Usage
 ### i.Setting Parameters
   This are the inline terminal argmunts taken from the script, most of them aren't required.
   As before, only the video path **must** be specified when we call the script:
@@ -133,10 +106,10 @@ The first one has problems in the frames order, this is why you will see so much
     python VID_tensorbox_multi_class.py --path_video video.mp4
   ```  
 
-## 6.Tensorbox Tests
+## 5.Tensorbox Tests
   In the files you can find two folders containing some result of the runs of the TENSOBOX scripts one for the single and one for the multi class.
   
-## 7.Dataset Scripts
+## 6.Dataset Scripts
   All the scripts below are for the VID classes so if you wonna adapt them for other you have to simply change the Classes.py file where are defined the correspondencies between codes and names. All the data on the image are made respect a specific Image Ratio, because TENSORBOX works only with 640x480 PNG images, you will have to change the code a little to adapt to your needs.
   I will provide four scripts:
   1. **Process_Dataset_heavy.py**: Process your dataset with a brute force approach, you will obtain more bbox and files for each class;
@@ -144,15 +117,16 @@ The first one has problems in the frames order, this is why you will see so much
   3. **Resize_Dataset.py**: Resize your dataset to 640x480 PNG images;
   4. **Test_Processed_Data.py**: Will test that the process end well without errors.
 
-## 8.Copyright
+## 7.Copyright
 
 According to the LICENSE file of the original code,
 
   - Me and original author hold no liability for any damages;
   - Do not use this on commercial!.
 
-## 9.State of the Project
+## 8.State of the Project
 
-  - Support both YOLO and TENSORBOX (SingleClass) DET Algorithm;
-  - Support Training **ONLY TENSOBOX Training**;
-  - Not use of Temporal & Context Information;
+  - Support YOLO (SingleClass) DET Algorithm;
+  - Support Training **ONLY TENSOBOX and INCEPTION Training**;
+  - **USE OF TEMPORAL INFORMATION**;
+  - Modular Architecture composed in cascade by: Tensorbox (as General Object Detector), Tracker and Smoother and Inception (as Object Classifier);
