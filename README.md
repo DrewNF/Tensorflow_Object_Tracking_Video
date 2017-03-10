@@ -112,13 +112,12 @@ The first one has problems in the frames order, this is why you will see so much
   
 ## 6.Dataset Scripts
   All the scripts below are for the VID classes so if you wonna adapt them for other you have to simply change the Classes.py file where are defined the correspondencies between codes and names. All the data on the image are made respect a specific Image Ratio, because TENSORBOX works only with 640x480 PNG images, you will have to change the code a little to adapt to your needs.
-  I've also add some file scripts to pre process and prepare the dataset to train the last component, the Inception Model.
   I will provide four scripts:
   1. **Process_Dataset_heavy.py**: Process your dataset with a brute force approach, you will obtain more bbox and files for each class;
   2. **Process_Dataset_lightweight.py**: Process your dataset with a lightweight approach making, you will obtain less bbox and files for each class;
   3. **Resize_Dataset.py**: Resize your dataset to 640x480 PNG images;
   4. **Test_Processed_Data.py**: Will test that the process end well without errors.
-
+I've also add some file scripts to pre process and prepare the dataset to train the last component, the Inception Model, you can find them in a subfolder of the dataset script folder.
 ## 7.Copyright
 
 According to the LICENSE file of the original code,
@@ -130,5 +129,5 @@ According to the LICENSE file of the original code,
 
   - Support YOLO (SingleClass) DET Algorithm;
   - Support Training **ONLY TENSOBOX and INCEPTION Training**;
-  - **USE OF TEMPORAL INFORMATION** [This are retrieved through some post processing algorithm I've implemented in the Utils_Video.py file];
+  - **USE OF TEMPORAL INFORMATION** [This are retrieved through some post processing algorithm I've implemented in the Utils_Video.py file **NOT TRAINABLE**];
   - Modular Architecture composed in cascade by: Tensorbox (as General Object Detector), Tracker and Smoother and Inception (as Object Classifier);
