@@ -5,6 +5,7 @@
 ![alt text](images/UPC_logo.png "Logo Title Text 1")
 ![alt text](images/BSC_logo.png "Logo Title Text 1")
 ![alt text](images/IGP_logo.png  "Logo Title Text 1")
+![alt text](images/POLITO_logo.png  "Logo Title Text 1")
 
 The Project follow the below **index**:
 
@@ -21,6 +22,7 @@ The Project follow the below **index**:
 7. **[Copyright](#7copyright);**
 8. **[State of the Project](#8state-of-the-project).**
 9. **[DOWNLOADS](#9downloads).**
+10. **[Acknowledgements](#9acknowledgements).**
 
 
 ## 1.Introduction
@@ -139,7 +141,16 @@ According to the LICENSE file of the original code,
   - Modular Architecture composed in cascade by: Tensorbox (as General Object Detector), Tracker and Smoother and Inception (as Object Classifier);
   
  ## 9.Downloads
+ 
  Here below the links of the weights file for Inception and Tensorbox from my retraining experiments:
  - [INCEPTION](https://mega.nz/#!rtkD2TzA!iDoBGzAFC69b8VE2wlJOoRg7kJ6XnayMcagrzidZGxw)
  - [TENSORBOX](https://mega.nz/#!WpdSUArZ!8-E3YIvpfBHUoBc1QGDyiWA0CKbIXxOyVqJWMeSE6-g)
  
+  ## 10.Acknowledgements
+  
+  Thanks to Professors:
+  
+  **Elena Baralis** from Politecnico di Torino Dipartimento di Automatica e Informatica
+  **Jordi Torres** from BSC Department of Computer Science
+  **Xavi Giro ”I” Nieto** from UPC Department of Image Processing
+  
