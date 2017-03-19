@@ -150,7 +150,7 @@ According to the LICENSE file of the original code,
   
   Thanks to Professors:
   
-  **Elena Baralis** from Politecnico di Torino Dipartimento di Automatica e Informatica
-  **Jordi Torres** from BSC Department of Computer Science
-  **Xavi Giro ”I” Nieto** from UPC Department of Image Processing
+  - **Elena Baralis** from Politecnico di Torino Dipartimento di Automatica e Informatica;
+  - **Jordi Torres** from BSC Department of Computer Science;
+  - **Xavi Giro ”I” Nieto** from UPC Department of Image Processing.
   
