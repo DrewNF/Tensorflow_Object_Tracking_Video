@@ -102,7 +102,10 @@ The first one has problems in the frames order, this is why you will see so much
   For train and spec on the multiclass implementation I will add them after the end of my thesis project.
   
 ### ii.Usage
-  After Set the Parameters, we can proceed and run the script:
+  
+  Download the .zip files linked in the Download section and replace the folders.
+      
+  Then, after set the parameters, we can proceed and run the script:
   
   ```python
     python VID_tensorbox_multi_class.py --path_video video.mp4
