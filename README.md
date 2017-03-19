@@ -20,6 +20,7 @@ The Project follow the below **index**:
 6. **[Dataset Scripts](#6dataset-script);**
 7. **[Copyright](#7copyright);**
 8. **[State of the Project](#8state-of-the-project).**
+9. **[DOWNLOADS](#9downloads).**
 
 
 ## 1.Introduction
@@ -133,3 +134,9 @@ According to the LICENSE file of the original code,
   - Support Training **ONLY TENSOBOX and INCEPTION Training**;
   - **USE OF TEMPORAL INFORMATION** [This are retrieved through some post processing algorithm I've implemented in the Utils_Video.py file **NOT TRAINABLE**];
   - Modular Architecture composed in cascade by: Tensorbox (as General Object Detector), Tracker and Smoother and Inception (as Object Classifier);
+  
+ ## 9.Downloads
+ Here below the links of the weights file for Inception and Tensorbox from my retraining experiments:
+ - [INCEPTION](https://mega.nz/#!rtkD2TzA!iDoBGzAFC69b8VE2wlJOoRg7kJ6XnayMcagrzidZGxw)
+ - [TENSORBOX](https://mega.nz/#!WpdSUArZ!8-E3YIvpfBHUoBc1QGDyiWA0CKbIXxOyVqJWMeSE6-g)
+ 
