@@ -22,7 +22,8 @@ The Project follow the below **index**:
 7. **[Copyright](#7copyright);**
 8. **[State of the Project](#8state-of-the-project).**
 9. **[DOWNLOADS](#9downloads).**
-10. **[Acknowledgements](#9acknowledgements).**
+10. **[Acknowledgements](#10acknowledgements).**
+11. **[Bibliography](#11bibliography).**
 
 
 ## 1.Introduction
@@ -154,3 +155,18 @@ According to the LICENSE file of the original code,
   - **Jordi Torres** from BSC Department of Computer Science;
   - **Xavi Giro ”I” Nieto** from UPC Department of Image Processing.
   
+  ## 11.Bibliography
+  ### i.Classification
+  - [ Alex Krizhevsky, Ilya Sutskever, and Geoffrey E. Hinton. “ImageNet Classification  with  Deep  Convolutional  Neural  Networks”.](https://papers.nips.cc/paper/4824-imagenet-classification-with-deep-convolutional-neural-networks)
+  - [Christian Szegedy et al. “Going Deeper with Convolutions”.](https://arxiv.org/abs/1409.4842)
+  - [Christian Szegedy et al. “Rethinking the Inception Architecture for ComputerVision”.](https://arxiv.org/abs/1512.00567)
+  - [Kaiming  He  et  al.  “Delving  Deep  into  Rectifiers:  Surpassing  Human-LevelPerformance on ImageNet Classification”. ](https://arxiv.org/abs/1502.01852)
+  ### ii.Detection
+  - [Russell  Stewart  and  Mykhaylo  Andriluka.  “End-to-end  people  detection  incrowded scenes”.](https://arxiv.org/abs/1506.04878)
+  - [Pierre  Sermanet  et  al.  “OverFeat:  Integrated  Recognition,  Localization  andDetection  using  Convolutional  Networks”.](https://arxiv.org/abs/1312.6229)
+  - [S. Ren et al. “Faster R-CNN: Towards Real-Time Object Detection with Region Proposal Networks”.](https://arxiv.org/abs/1506.01497)
+  ### iii.Tracking
+  - [Dinesh Jayaraman and Kristen Grauman. “Slow and Steady Feature Analy-sis: Higher Order Temporal Coherence in Video”.](https://arxiv.org/abs/1506.04714) 
+  - [K.  Kang  et  al.  “T-CNN:  Tubelets  with  Convolutional  Neural  Networks  forObject Detection from Videos”.](https://arxiv.org/abs/1604.02532)
+  - [ W. Han et al. “Seq-NMS for Video Object Detection”.](https://arxiv.org/abs/1602.08465)
+  -[J. Redmon et al. “You Only Look Once: Unified, Real-Time Object Detection”](https://arxiv.org/abs/1506.02640)
