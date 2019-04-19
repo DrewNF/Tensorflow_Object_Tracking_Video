@@ -16,6 +16,13 @@ except ImportError:
 from tensorflow.python.framework import ops
 from tensorflow.python.ops import array_ops
 
+if(int(tf.__version__.split(".")[0])<1): ### For tf v<1.0
+    merge_all_summaries,histogram_summary = tf.merge_all_summaries,tf.histogram_summary
+    image_summary,scalar_summary = tf.image_summary,tf.scalar_summary
+else:
+    merge_all_summaries,histogram_summary = tf.summary.merge_all,tf.summary.histogram
+    image_summary,scalar_summary = tf.summary.image , tf.summary.scalar
+
 random.seed(0)
 np.random.seed(0)
 
@@ -259,14 +266,24 @@ def build_forward_backward(H, x, googlenet, phase, boxes, flags):
             if H['rezoom_change_loss'] == 'center':
                 error = (perm_truth[:, :, 0:2] - pred_boxes[:, :, 0:2]) / tf.maximum(perm_truth[:, :, 2:4], 1.)
                 square_error = tf.reduce_sum(tf.square(error), 2)
-                inside = tf.reshape(tf.to_int64(tf.logical_and(tf.less(square_error, 0.2**2), tf.greater(classes, 0))), [-1])
+                if(int(tf.__version__.split(".")[1])<13 and int(tf.__version__.split(".")[0])<2): ### for tf version < 1.13
+                    inside = tf.reshape(tf.to_int64(tf.logical_and(tf.less(square_error, 0.2**2), tf.greater(classes, 0))), [-1])
+                else: ### for tf version >= 1.13
+                    inside = tf.reshape(tf.cast(tf.logical_and(tf.less(square_error, 0.2**2), tf.greater(classes, 0)),tf.int64), [-1])
             elif H['rezoom_change_loss'] == 'iou':
                 iou = train_utils.iou(train_utils.to_x1y1x2y2(tf.reshape(pred_boxes, [-1, 4])),
                                       train_utils.to_x1y1x2y2(tf.reshape(perm_truth, [-1, 4])))
-                inside = tf.reshape(tf.to_int64(tf.greater(iou, 0.5)), [-1])
+                if(int(tf.__version__.split(".")[1])<13 and int(tf.__version__.split(".")[0])<2): ### for tf version < 1.13
+                    inside = tf.reshape(tf.to_int64(tf.greater(iou, 0.5)), [-1])
+                else:
+                    inside = tf.reshape(tf.cast(tf.greater(iou, 0.5),tf.int64), [-1]) 
             else:
                 assert H['rezoom_change_loss'] == False
-                inside = tf.reshape(tf.to_int64((tf.greater(classes, 0))), [-1])
+                if(int(tf.__version__.split(".")[1])<13 and int(tf.__version__.split(".")[0])<2): ### for tf version < 1.13
+                    inside = tf.reshape(tf.to_int64((tf.greater(classes, 0))), [-1])
+                else:
+                    inside = tf.reshape(tf.cast((tf.greater(classes, 0)),tf.int64), [-1])
+ 
             new_confs = tf.reshape(pred_confs_deltas, [outer_size * H['rnn_len'], H['num_classes']])
             delta_confs_loss = tf.reduce_sum(
                 tf.nn.sparse_softmax_cross_entropy_with_logits(new_confs, inside)) / outer_size * H['solver']['head_weights'][0] * 0.1
@@ -284,10 +301,10 @@ def build_forward_backward(H, x, googlenet, phase, boxes, flags):
                                outer_size * H['solver']['head_weights'][1] * 0.03)
                 boxes_loss = delta_boxes_loss
 
-                tf.histogram_summary(phase + '/delta_hist0_x', pred_boxes_deltas[:, 0, 0])
-                tf.histogram_summary(phase + '/delta_hist0_y', pred_boxes_deltas[:, 0, 1])
-                tf.histogram_summary(phase + '/delta_hist0_w', pred_boxes_deltas[:, 0, 2])
-                tf.histogram_summary(phase + '/delta_hist0_h', pred_boxes_deltas[:, 0, 3])
+                histogram_summary(phase + '/delta_hist0_x', pred_boxes_deltas[:, 0, 0])
+                histogram_summary(phase + '/delta_hist0_y', pred_boxes_deltas[:, 0, 1])
+                histogram_summary(phase + '/delta_hist0_w', pred_boxes_deltas[:, 0, 2])
+                histogram_summary(phase + '/delta_hist0_h', pred_boxes_deltas[:, 0, 3])
                 loss += delta_boxes_loss
         else:
             loss = confidences_loss + boxes_loss
@@ -358,13 +375,13 @@ def build(H, q):
                                           ])
 
             for p in ['train', 'test']:
-                tf.scalar_summary('%s/accuracy' % p, accuracy[p])
-                tf.scalar_summary('%s/accuracy/smooth' % p, moving_avg.average(accuracy[p]))
-                tf.scalar_summary("%s/confidences_loss" % p, confidences_loss[p])
-                tf.scalar_summary("%s/confidences_loss/smooth" % p,
+                scalar_summary('%s/accuracy' % p, accuracy[p])
+                scalar_summary('%s/accuracy/smooth' % p, moving_avg.average(accuracy[p]))
+                scalar_summary("%s/confidences_loss" % p, confidences_loss[p])
+                scalar_summary("%s/confidences_loss/smooth" % p,
                     moving_avg.average(confidences_loss[p]))
-                tf.scalar_summary("%s/regression_loss" % p, boxes_loss[p])
-                tf.scalar_summary("%s/regression_loss/smooth" % p,
+                scalar_summary("%s/regression_loss" % p, boxes_loss[p])
+                scalar_summary("%s/regression_loss/smooth" % p,
                     moving_avg.average(boxes_loss[p]))
 
         if phase == 'test':
@@ -394,10 +411,10 @@ def build(H, q):
             true_log_img = tf.py_func(log_image,
                                       [test_image, test_true_confidences, test_true_boxes, global_step, 'true'],
                                       [tf.float32])
-            tf.image_summary(phase + '/pred_boxes', tf.pack(pred_log_img),max_images=10)
-            tf.image_summary(phase + '/true_boxes', tf.pack(true_log_img),max_images=10)
+            image_summary(phase + '/pred_boxes', tf.pack(pred_log_img),max_images=10)
+            image_summary(phase + '/true_boxes', tf.pack(true_log_img),max_images=10)
 
-    summary_op = tf.merge_all_summaries()
+    summary_op = merge_all_summaries()
 
     return (config, loss, accuracy, summary_op, train_op,
             smooth_op, global_step, learning_rate, encoder_net)
@@ -460,7 +477,10 @@ def train(H, test_images):
             t.start()
 
         tf.set_random_seed(H['solver']['rnd_seed'])
-        sess.run(tf.initialize_all_variables())
+        if(int(tf.__version__.split(".")[0])==0 and int(tf.__version__.split(".")[1])<12): ### for tf v<0.12.0
+            sess.run(tf.initialize_all_variables())
+        else:
+            sess.run(tf.global_variables_initializer())
         writer.add_graph(sess.graph)
         weights_str = H['solver']['weights']
         if len(weights_str) > 0:

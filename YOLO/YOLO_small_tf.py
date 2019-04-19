@@ -76,7 +76,10 @@ class YOLO_TF:
 		#skip dropout_31
 		self.fc_32 = self.fc_layer(32,self.fc_30,1470,flat=False,linear=True)
 		self.sess = tf.Session()
-		self.sess.run(tf.initialize_all_variables())
+		if(int(tf.__version__.split(".")[0])==0 and int(tf.__version__.split(".")[1])<12): ### for tf v<0.12.0
+			self.sess.run(tf.initialize_all_variables())
+		else:
+			self.sess.run(tf.global_variables_initializer())
 		self.saver = tf.train.Saver()
 		self.saver.restore(self.sess,self.weights_file)
 		if self.disp_console : print "Loading complete!" + '\n'
