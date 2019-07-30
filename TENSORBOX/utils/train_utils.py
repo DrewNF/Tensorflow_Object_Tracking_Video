@@ -206,11 +206,16 @@ def interp(w, i, channel_dim):
         of the same length == len(i)
     '''
     w_as_vector = tf.reshape(w, [-1, channel_dim]) # gather expects w to be 1-d
-    upper_l = tf.to_int32(tf.concat(1, [i[:, 0:1], tf.floor(i[:, 1:2]), tf.floor(i[:, 2:3])]))
-    upper_r = tf.to_int32(tf.concat(1, [i[:, 0:1], tf.floor(i[:, 1:2]), tf.ceil(i[:, 2:3])]))
-    lower_l = tf.to_int32(tf.concat(1, [i[:, 0:1], tf.ceil(i[:, 1:2]), tf.floor(i[:, 2:3])]))
-    lower_r = tf.to_int32(tf.concat(1, [i[:, 0:1], tf.ceil(i[:, 1:2]), tf.ceil(i[:, 2:3])]))
-
+    if(int(tf.__version__.split(".")[1])<13 and int(tf.__version__.split(".")[0])<2): ### for tf version < 13
+        upper_l = tf.to_int32(tf.concat(1, [i[:, 0:1], tf.floor(i[:, 1:2]), tf.floor(i[:, 2:3])]))
+        upper_r = tf.to_int32(tf.concat(1, [i[:, 0:1], tf.floor(i[:, 1:2]), tf.ceil(i[:, 2:3])]))
+        lower_l = tf.to_int32(tf.concat(1, [i[:, 0:1], tf.ceil(i[:, 1:2]), tf.floor(i[:, 2:3])]))
+        lower_r = tf.to_int32(tf.concat(1, [i[:, 0:1], tf.ceil(i[:, 1:2]), tf.ceil(i[:, 2:3])]))
+    else:  ### for tf version >= 13
+        upper_l = tf.cast(tf.concat(1, [i[:, 0:1], tf.floor(i[:, 1:2]), tf.floor(i[:, 2:3])]),tf.int32)
+        upper_r = tf.cast(tf.concat(1, [i[:, 0:1], tf.floor(i[:, 1:2]), tf.ceil(i[:, 2:3])]),tf.int32)
+        lower_l = tf.cast(tf.concat(1, [i[:, 0:1], tf.ceil(i[:, 1:2]), tf.floor(i[:, 2:3])]),tf.int32)
+        lower_r = tf.cast(tf.concat(1, [i[:, 0:1], tf.ceil(i[:, 1:2]), tf.ceil(i[:, 2:3])]),tf.int32)
     upper_l_idx = to_idx(upper_l, tf.shape(w))
     upper_r_idx = to_idx(upper_r, tf.shape(w))
     lower_l_idx = to_idx(lower_l, tf.shape(w))
@@ -265,6 +270,8 @@ def bilinear_select(H, pred_boxes, early_feat, early_feat_channels, w_offset, h_
     pred_y_center_clip = tf.clip_by_value(pred_y_center,
                                           0,
                                           scale_factor * H['grid_height'] - 1)
-
-    interp_indices = tf.concat(1, [tf.to_float(batch_ids), pred_y_center_clip, pred_x_center_clip])
+    if(int(tf.__version__.split(".")[1])<13 and int(tf.__version__.split(".")[0])<2): ### for tf version < 1.13
+        interp_indices = tf.concat(1, [tf.to_float(batch_ids), pred_y_center_clip, pred_x_center_clip])
+    else: ### for tf version >= 1.13.0
+        interp_indices = tf.concat(1, [tf.cast(batch_ids,tf.float32), pred_y_center_clip, pred_x_center_clip]) 
     return interp_indices
