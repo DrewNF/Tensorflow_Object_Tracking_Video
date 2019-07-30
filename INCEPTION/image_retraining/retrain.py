@@ -80,7 +80,10 @@ import tensorflow as tf
 from tensorflow.python.client import graph_util
 from tensorflow.python.framework import tensor_shape
 from tensorflow.python.platform import gfile
-
+if(int(tf.__version__.split(".")[0])<1): ### For tf v<1.0
+  scalar_summary = tf.scalar_summary()
+else: ### For tf v>=1.0 
+  scalar_summary = tf.summary.scalar()
 
 import struct
 
@@ -700,13 +703,16 @@ def variable_summaries(var, name):
   """Attach a lot of summaries to a Tensor (for TensorBoard visualization)."""
   with tf.name_scope('summaries'):
     mean = tf.reduce_mean(var)
-    tf.scalar_summary('mean/' + name, mean)
+    scalar_summary('mean/' + name, mean)
     with tf.name_scope('stddev'):
       stddev = tf.sqrt(tf.reduce_sum(tf.square(var - mean)))
-    tf.scalar_summary('sttdev/' + name, stddev)
-    tf.scalar_summary('max/' + name, tf.reduce_max(var))
-    tf.scalar_summary('min/' + name, tf.reduce_min(var))
-    tf.histogram_summary(name, var)
+    scalar_summary('sttdev/' + name, stddev)
+    scalar_summary('max/' + name, tf.reduce_max(var))
+    scalar_summary('min/' + name, tf.reduce_min(var))
+    if(int(tf.__version__.split(".")[0])<1): ### For tf v<1.0
+      tf.histogram_summary(name, var)
+    else: ### For tf v>=1.0 
+      tf.summary.histogram(name, var) 
 
 
 def add_final_training_ops(class_count, final_tensor_name, bottleneck_tensor):
@@ -750,17 +756,25 @@ def add_final_training_ops(class_count, final_tensor_name, bottleneck_tensor):
       variable_summaries(layer_biases, layer_name + '/biases')
     with tf.name_scope('Wx_plus_b'):
       logits = tf.matmul(bottleneck_input, layer_weights) + layer_biases
-      tf.histogram_summary(layer_name + '/pre_activations', logits)
+      if(int(tf.__version__.split(".")[0])<1): ### For tf v<1.0
+        tf.histogram_summary(layer_name + '/pre_activations', logits)
+      else: ### For tf v>=1.0 
+        tf.summary.histogram(layer_name + '/pre_activations', logits)
 
   final_tensor = tf.nn.softmax(logits, name=final_tensor_name)
-  tf.histogram_summary(final_tensor_name + '/activations', final_tensor)
+  if(int(tf.__version__.split(".")[0])<1): ### For tf v<1.0
+    tf.histogram_summary(final_tensor_name + '/activations', final_tensor)
+  else: ### For tf v>=1.0 
+    tf.summary.histogram(final_tensor_name + '/activations', final_tensor)
+ 
+  
 
   with tf.name_scope('cross_entropy'):
     cross_entropy = tf.nn.softmax_cross_entropy_with_logits(
       logits, ground_truth_input)
     with tf.name_scope('total'):
       cross_entropy_mean = tf.reduce_mean(cross_entropy)
-    tf.scalar_summary('cross entropy', cross_entropy_mean)
+    scalar_summary('cross entropy', cross_entropy_mean)
 
   with tf.name_scope('train'):
     train_step = tf.train.GradientDescentOptimizer(FLAGS.learning_rate).minimize(
@@ -787,7 +801,7 @@ def add_evaluation_step(result_tensor, ground_truth_tensor):
         tf.argmax(ground_truth_tensor, 1))
     with tf.name_scope('accuracy'):
       evaluation_step = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-    tf.scalar_summary('accuracy', evaluation_step)
+    scalar_summary('accuracy', evaluation_step)
   return evaluation_step
 
 
@@ -841,13 +855,19 @@ def main(_):
   evaluation_step = add_evaluation_step(final_tensor, ground_truth_input)
 
   # Merge all the summaries and write them out to /tmp/retrain_logs (by default)
-  merged = tf.merge_all_summaries()
+  if(int(tf.__version__.split(".")[0])<1): ### For tf v<1.0
+    merged = tf.merge_all_summaries()
+  else: ### For tf v>=1.0
+    merged = tf.summary.merge_all()
   train_writer = tf.train.SummaryWriter(FLAGS.summaries_dir + '/train',
                                         sess.graph)
   validation_writer = tf.train.SummaryWriter(FLAGS.summaries_dir + '/validation')
 
   # Set up all our weights to their initial default values.
-  init = tf.initialize_all_variables()
+  if(int(tf.__version__.split(".")[0])==0 and int(tf.__version__.split(".")[1])<12): ### for tf v<0.12.0
+    init = tf.initialize_all_variables()
+  else: ### for tf v>=0.12.0
+    init = tf.global_variables_initializer()
   sess.run(init)
 
   # Run the training for as many cycles as requested on the command line.

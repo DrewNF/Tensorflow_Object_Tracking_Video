@@ -382,8 +382,10 @@ def bbox_det_TENSORBOX_multiclass(frames_list,path_video_folder,hypes_file,weigh
 
     with tf.Session() as sess:
 
-
-        sess.run(tf.initialize_all_variables())
+        if(int(tf.__version__.split(".")[0])==0 and int(tf.__version__.split(".")[1])<12): ### for tf v<0.12.0
+            sess.run(tf.initialize_all_variables())
+        else: ### for tf v>=0.12.0
+            sess.run(tf.global_variables_initializer())
         saver.restore(sess, weights_file )##### Restore a Session of the Model to get weights and everything working
     
         #### Starting Evaluating the images
