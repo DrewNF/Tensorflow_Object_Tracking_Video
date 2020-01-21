@@ -56,7 +56,7 @@ All the Python library necessary could be installed easily trought pip install p
 If you want to follow a guide to install the requirements here is the link for a [tutorial](https://github.com/DrewNF/Build-Deep-Learning-Env-with-Tensorflow-Python-OpenCV) I wrote for myself and for a course of Deep Learning at UPC.
 
 ## 3.YOLO Script Usage
-### i.Setting Parameters
+You only look once (YOLO) is a state-of-the-art, real-time object detection system.## i.Setting Parameters
   This are the inline terminal argmunts taken from the script, most of them aren't required, only the video path **must** be specified when we call the script:
         
   ```python      
