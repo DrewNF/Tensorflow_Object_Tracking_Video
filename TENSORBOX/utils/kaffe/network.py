@@ -2,6 +2,8 @@ import numpy as np
 import tensorflow as tf
 
 DEFAULT_PADDING = 'SAME'
+tf_major_ver = int(tf.__version__.split(".")[0])
+tf_minor_ver = int(tf.__version__.split(".")[1])
 
 def layer(op):
     def layer_decorated(self, *args, **kwargs):
@@ -88,7 +90,10 @@ class Network(object):
                 input_groups = tf.split(3, group, input)
                 kernel_groups = tf.split(3, group, kernel)
                 output_groups = [convolve(i, k) for i,k in zip(input_groups, kernel_groups)]
-                conv = tf.concat(3, output_groups)
+                if(tf_major_ver==0):
+                    conv = tf.concat(3, output_groups)
+                else:
+                    conv = tf.concat(output_groups,3)
             if relu:
                 bias = tf.reshape(tf.nn.bias_add(conv, biases), conv.get_shape().as_list())
                 return tf.nn.relu(bias, name=scope.name)
@@ -127,7 +132,10 @@ class Network(object):
 
     @layer
     def concat(self, inputs, axis, name):
-        return tf.concat(concat_dim=axis, values=inputs, name=name)
+        if(tf_major_ver==0):
+            return tf.concat(concat_dim=axis, values=inputs, name=name)
+        else:
+            return tf.concat(axis=axis, values=inputs, name=name)
 
     @layer
     def fc(self, input, num_out, name, relu=True):
